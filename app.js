@@ -52,7 +52,7 @@ app.post("/register", async (request, response) => {
         (
             '${username}',
             '${name}',
-            '${password}',
+            '${hashedPassword}',
             '${gender}',
             '${location}'
         )
@@ -89,7 +89,10 @@ app.post("/login", async (request, response) => {
     response.status(400);
     response.send("Invalid user");
   } else {
-    const comparingPassword = await bcrypt.compare(password, dbUser.password);
+    const comparingPassword = await bcrypt.compareSync(
+      password,
+      dbUser.password
+    );
     if (comparingPassword === true) {
       response.status(200);
       response.send("Login success!");
@@ -98,4 +101,22 @@ app.post("/login", async (request, response) => {
       response.send("Invalid password");
     }
   }
+});
+
+///Updating Password
+
+app.put("/change-password", async (request, response) => {
+  const { username, oldPassword, newPassword } = request.body;
+  const selectUserQuery = `
+  SELECT
+   * 
+  FROM 
+  user 
+  WHERE 
+  username = '${username}';`;
+  const dbUser = await db.get(selectUserQuery);
+  const comparingPassword = await bcrypt.compareSync(
+    oldPassword,
+    dbUser.password
+  );
 });
